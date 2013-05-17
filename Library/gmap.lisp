@@ -220,6 +220,12 @@
 ;  considerations; in which case the identity function of the first argument is
 ;  used, and other arguments are ignored.
 
+; I am finding definitions for all these old maclisp functions here: 
+; http://www.maclisp.info/pitmanual 
+(setf (symbol-function 'lexpr-funcall) #'apply)
+(setf (symbol-function 'ferror) #'error)
+(setf (symbol-function 'ncons) #'list)
+(defun copylist (x) (append x nil))
 
 ; The top-level macro.
 (defmacro GMAP (res-spec fn &rest arg-spec-list)
