@@ -222,12 +222,15 @@
 
 ; I am finding definitions for all these old maclisp functions here: 
 ; http://www.maclisp.info/pitmanual 
+; - Jovan
 (setf (symbol-function 'lexpr-funcall) #'apply)
 (setf (symbol-function 'ferror) #'error)
 (setf (symbol-function 'ncons) #'list)
 (defun copylist (x) (append x nil))
 
 ; The top-level macro.
+; Try: (gmap (:list) #'+ (:list '(1 2 3)) (:index 3))
+; - Jovan
 (defmacro GMAP (res-spec fn &rest arg-spec-list)
   (gmap>expand fn
 	       (gmap>res-spec-lookup res-spec)
@@ -345,20 +348,34 @@
   "A list of all GMAP result types that have been defined.")
 
 ; define an arg-type.
+; THIS IS THE OLD BROKEN ZETALISP CODE
+;(defmacro def-gmap-arg-type (name args &body body)
+;  `(progn
+;     'compile
+;     (defun (:property ,name :gmap-arg-spec-generator) ,args . ,body)
+;     (eval-when (eval load)
+;       (if (not (memq ',name gmap-arg-type-list))
+;	   (push ',name gmap-arg-type-list)))))
 (defmacro def-gmap-arg-type (name args &body body)
   `(progn
-     'compile
-     (defun (:property ,name :gmap-arg-spec-generator) ,args . ,body)
-     (eval-when (eval load)
+     (defun ,name ,args ,body)
+     (eval-when (:execute :load-toplevel)
        (if (not (memq ',name gmap-arg-type-list))
 	   (push ',name gmap-arg-type-list)))))
 
 ; define a result-type.
+; THIS IS THE OLD CODE THAT DOESN'T WORK IN COMMON LISP
+;(defmacro def-gmap-res-type (name args &body body)
+;  `(progn
+;     'compile
+;     (defun (:property ,name :gmap-res-spec-generator) ,args . ,body)
+;     (eval-when (eval load)
+;       (if (not (memq ',name gmap-res-type-list))
+;	   (push ',name gmap-res-type-list)))))
 (defmacro def-gmap-res-type (name args &body body)
   `(progn
-     'compile
-     (defun (:property ,name :gmap-res-spec-generator) ,args . ,body)
-     (eval-when (eval load)
+     (defun ,name ,args ,body)
+     (eval-when (:execute :load-toplevel)
        (if (not (memq ',name gmap-res-type-list))
 	   (push ',name gmap-res-type-list)))))
 
