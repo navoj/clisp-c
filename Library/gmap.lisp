@@ -226,7 +226,12 @@
 (setf (symbol-function 'lexpr-funcall) #'apply)
 (setf (symbol-function 'ferror) #'error)
 (setf (symbol-function 'ncons) #'list)
+(setf (symbol-function 'nlistp) #'listp)
 (defun copylist (x) (append x nil))
+(defun memq (x y)
+  (cond ((null y) nil)
+	((eq x (car y)) y)
+	((memq x (cdr y)))))
 
 ; The top-level macro.
 ; Try: (gmap (:list) #'+ (:list '(1 2 3)) (:index 3))
@@ -358,7 +363,7 @@
 ;	   (push ',name gmap-arg-type-list)))))
 (defmacro def-gmap-arg-type (name args &body body)
   `(progn
-     (defun ,name ,args ,body)
+     (defun ,name ,args . ,body)
      (eval-when (:execute :load-toplevel)
        (if (not (memq ',name gmap-arg-type-list))
 	   (push ',name gmap-arg-type-list)))))
@@ -406,8 +411,6 @@
 	  (ferror nil "Result spec, ~S, to gmap is of unknown type
   (Do you have the package right?)"
 		  raw-res-spec))))))
-
-
 
 ; ******** Predefined argument types ********
 ; See above for documentation.
@@ -701,12 +704,12 @@
 ; ================================================================
 ; Finally, we globalize the symbols that need to be accessible.
 
-(globalize 'gmap)
-(globalize 'nlet)
-(globalize 'bcond)
+;(globalize 'gmap)
+;(globalize 'nlet)
+;(globalize 'bcond)
 
 ; Necessary for the Common Lisp package system.
-(eval-when (load)
+(eval-when (:load-toplevel)
   (export (intern "GMAP" 'global) 'global)
   (export (intern "NLET" 'global) 'global)
   (export (intern "BCOND" 'global) 'global))
