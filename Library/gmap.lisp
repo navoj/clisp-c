@@ -275,7 +275,6 @@
 				       ,(gmap>res>next res-spec (car result-pair) fnval)))
 			    fnval-vars result-list res-specs))))))))
 
-
 ; extract the let-specs.
 (defun GMAP>LET-SPECS (arg-specs res-specs)
   (nconc (mapcan #'fifth arg-specs) (mapcan #'fifth res-specs)))
@@ -379,7 +378,7 @@
 ;	   (push ',name gmap-res-type-list)))))
 (defmacro def-gmap-res-type (name args &body body)
   `(progn
-     (defun ,name ,args ,body)
+     (defun ,name ,args . ,body)
      (eval-when (:execute :load-toplevel)
        (if (not (memq ',name gmap-res-type-list))
 	   (push ',name gmap-res-type-list)))))
