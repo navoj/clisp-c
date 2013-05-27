@@ -418,68 +418,126 @@
   `(,initial-list
     #'null #'car #'cdr))
 
+;(def-gmap-arg-type :INDEX (start &optional stop incr)
+;  (let ((incr-temp (gensym))
+;	(stop-temp (gensym))
+;	(bounds-fn-temp (gensym)))
+;    `(,start					; init
+;      ,(if stop                                 ; exitp
+;	   (if incr
+;	       `#'(lambda (val)
+;		    (funcall ,bounds-fn-temp val ,stop-temp))
+;	     `#'(lambda (val) ( val ,stop-temp)))
+;	 'nil)
+;      nil					; no argfn
+;      ,(if incr                                 ; nextfn
+;	   `#'(lambda (val) (+ val ,incr-temp))
+;	   '#'1+)
+;      (,@(if incr				; and let-specs
+;	     `((,incr-temp ,incr)
+;	       ((,bounds-fn-temp (if (minusp ,incr-temp) #' #')))))
+;       ,@(if stop
+;	     `((,stop-temp ,stop)))))))
 (def-gmap-arg-type :INDEX (start &optional stop incr)
   (let ((incr-temp (gensym))
 	(stop-temp (gensym))
 	(bounds-fn-temp (gensym)))
-    `(,start					; init
-      ,(if stop                                 ; exitp
+    `(,start
+      ,(if stop
 	   (if incr
 	       `#'(lambda (val)
 		    (funcall ,bounds-fn-temp val ,stop-temp))
-	     `#'(lambda (val) ( val ,stop-temp)))
-	 'nil)
-      nil					; no argfn
-      ,(if incr                                 ; nextfn
+	       `#'(lambda (val) (^] val ,stop-temp)))
+	   'nil)
+      nil
+      ,(if incr
 	   `#'(lambda (val) (+ val ,incr-temp))
 	   '#'1+)
-      (,@(if incr				; and let-specs
+      (,@(if incr
 	     `((,incr-temp ,incr)
-	       ((,bounds-fn-temp (if (minusp ,incr-temp) #' #')))))
-       ,@(if stop
-	     `((,stop-temp ,stop)))))))
+	       ((,bounds-fn-temp (if (minusp ,incr-temp) #'^\ #'^])))))
+	 ,@(if stop
+	       `((,stop-temp ,stop)))))))
 
+;(def-gmap-arg-type :INDEX-INC (start &optional stop incr)
+;  (let ((incr-temp (gensym))
+;	(stop-temp (gensym))
+;	(bounds-fn-temp (gensym)))
+;    `(,start					; init
+;      ,(if stop                                 ; generate (possibly hairy) exitp
+;	   (if incr
+;	       `#'(lambda (val)
+;		    (funcall ,bounds-fn-temp val ,stop-temp))
+;	       `#'(lambda (val) (> val ,stop-temp)))
+;	   'nil)
+;      nil					; no argfn
+;      ,(if incr                                 ; nextfn
+;	   `#'(lambda (val) (+ val ,incr-temp))
+;	   '#'1+)
+;      (,@(if incr				; and let-specs
+;	     `((,incr-temp ,incr)
+;	       ((,bounds-fn-temp (if (minusp ,incr-temp) #'< #'>)))))
+;       ,@(if stop
+;	     `((,stop-temp ,stop)))))))
 (def-gmap-arg-type :INDEX-INC (start &optional stop incr)
   (let ((incr-temp (gensym))
 	(stop-temp (gensym))
 	(bounds-fn-temp (gensym)))
-    `(,start					; init
-      ,(if stop                                 ; generate (possibly hairy) exitp
+    `(,start
+      ,(if stop
 	   (if incr
 	       `#'(lambda (val)
 		    (funcall ,bounds-fn-temp val ,stop-temp))
 	       `#'(lambda (val) (> val ,stop-temp)))
 	   'nil)
-      nil					; no argfn
-      ,(if incr                                 ; nextfn
+      nil
+      ,(if incr
 	   `#'(lambda (val) (+ val ,incr-temp))
 	   '#'1+)
-      (,@(if incr				; and let-specs
+      (,@(if incr
 	     `((,incr-temp ,incr)
 	       ((,bounds-fn-temp (if (minusp ,incr-temp) #'< #'>)))))
-       ,@(if stop
-	     `((,stop-temp ,stop)))))))
+	 ,@(if stop
+	       `((,stop-temp ,stop)))))))
 
+;(def-gmap-arg-type :ARRAY (array)
+;  (let ((array-temp (gensym))
+;	(stop (gensym)))
+;    `(0
+;       #'(lambda (i) ( i ,stop))
+;       #'(lambda (i) (aref ,array-temp i))
+;       #'1+
+;       ((,array-temp ,array)
+;	((,stop (array-active-length ,array-temp)))))))
 (def-gmap-arg-type :ARRAY (array)
   (let ((array-temp (gensym))
 	(stop (gensym)))
     `(0
-       #'(lambda (i) ( i ,stop))
-       #'(lambda (i) (aref ,array-temp i))
-       #'1+
-       ((,array-temp ,array)
-	((,stop (array-active-length ,array-temp)))))))
+      #'(lambda (i) (^] i ,stop))
+      #'(lambda (i) (aref ,array-temp i))
+      #'1+
+      ((,array-temp ,array)
+       ((,stop (array-active-length ,array-temp)))))))
 
 ; This is like :ARRAY but coerces the object to a string first.
+;(def-gmap-arg-type :STRING (string)
+;  (let ((string-temp (gensym))
+;	(stop (gensym)))
+;    `(0
+;       #'(lambda (i) ( i,stop))
+;       #'(lambda (i) (aref ,string-temp i))
+;       #'1+
+;       ((,string-temp (string ,string))
+;	((,stop (string-length ,string-temp)))))))
 (def-gmap-arg-type :STRING (string)
   (let ((string-temp (gensym))
 	(stop (gensym)))
     `(0
-       #'(lambda (i) ( i,stop))
-       #'(lambda (i) (aref ,string-temp i))
-       #'1+
-       ((,string-temp (string ,string))
-	((,stop (string-length ,string-temp)))))))
+      #'(lambda (i) (^] i ,stop))
+      #'(lambda (i) (aref ,string-temp i))
+      #'1+
+      ((,string-temp (string ,string))
+       ((,stop (string-length ,string-temp)))))))
 
 (def-gmap-arg-type :STREAM (stream &optional (tyi-message ':tyi)
 					     (tyipeek-message ':tyipeek))
@@ -493,15 +551,26 @@
 (def-gmap-res-type :LIST (&optional filterp)
   `(nil #'xcons #'nreverse ,filterp))
 
+;(def-gmap-res-type :NCONC (&optional filterp)
+;  (let ((result-var (gensym)))			; have to use our own, sigh.
+;    `((locf ,result-var)			; init
+;       #'(lambda (next-loc new)			; nextfn
+;	   (rplacd next-loc new)
+;	   (if new (locf (cdr (last new))) next-loc))
+;       #'(lambda (ignore) ,result-var)
+;       ,filterp
+;       ((,result-var nil)))))
 (def-gmap-res-type :NCONC (&optional filterp)
-  (let ((result-var (gensym)))			; have to use our own, sigh.
-    `((locf ,result-var)			; init
-       #'(lambda (next-loc new)			; nextfn
-	   (rplacd next-loc new)
-	   (if new (locf (cdr (last new))) next-loc))
-       #'(lambda (ignore) ,result-var)
-       ,filterp
-       ((,result-var nil)))))
+  (let ((result-var (gensym)))
+    `((locf ,result-var)
+      #'(lambda (next-loc new)
+	  (rplacd next-loc new)
+	  (rplacd next-loc new)
+	  (if new (locf (cdr (last new))) next-loc))
+      #'(lambda (ignore) ,result-var)
+      ,filterp
+      ((,result-var nil)))))
+
 
 (def-gmap-res-type :AND ()
   '(t #'(lambda (ignore new)
@@ -530,24 +599,43 @@
     (if (null y) x
       (min x y))))
 
+;(def-gmap-res-type :ARRAY (initial-empty-array)
+;  (let ((array-temp (gensym)))
+;    `(0						; init
+;       #'(lambda (curr-index next-elt)		; nextfn
+;	   (aset next-elt ,array-temp curr-index)
+;	   (1+ curr-index))
+;       #'(lambda (last-index)			; cleanup
+;	   (if (array-has-leader-p ,array-temp)
+;	       (store-array-leader last-index ,array-temp 0))
+;	   ,array-temp)
+;       nil					; filterp
+;       ((,array-temp ,initial-empty-array)))))	; let-specs
 (def-gmap-res-type :ARRAY (initial-empty-array)
   (let ((array-temp (gensym)))
-    `(0						; init
-       #'(lambda (curr-index next-elt)		; nextfn
-	   (aset next-elt ,array-temp curr-index)
-	   (1+ curr-index))
-       #'(lambda (last-index)			; cleanup
-	   (if (array-has-leader-p ,array-temp)
-	       (store-array-leader last-index ,array-temp 0))
-	   ,array-temp)
-       nil					; filterp
-       ((,array-temp ,initial-empty-array)))))	; let-specs
+    `(0
+      #'(lambda (curr-index next-elt)
+	  (aset next-elt ,array-temp curr-index)
+	  (1+ curr-index))
+      #'(lambda (last-index)
+	  (if (array-has-leader-p ,array-temp)
+	      (store-array-leader last-index ,array-temp 0))
+	  ,array-temp)
+      nil
+      ((,array-temp ,initial-empty-array)))))
 
-(def-gmap-res-type :STRING (&optional (length-guess 20.))
-  `((make-array nil 'art-string			; init
+;(def-gmap-res-type :STRING (&optional (length-guess 20.))
+;  `((make-array nil 'art-string			; init
+;		,length-guess
+;		nil '(0))
+;    #'(lambda (string char)			; nextfn
+;	(array-push-extend string char)
+;	string)))
+(def-gmap-res-type :STRING (&optional (length-guess 20.0))
+  `((make-array nil 'art-string
 		,length-guess
 		nil '(0))
-    #'(lambda (string char)			; nextfn
+    #'(lambda (string char)
 	(array-push-extend string char)
 	string)))
 
