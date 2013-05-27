@@ -224,7 +224,9 @@
 ; http://www.maclisp.info/pitmanual 
 ; - Jovan
 (setf (symbol-function 'lexpr-funcall) #'apply)
-(setf (symbol-function 'ferror) #'error)
+;(setf (symbol-function 'ferror) #'error)
+(defmacro ferror (a b c)
+  `(error ,b ,c))
 (setf (symbol-function 'ncons) #'list)
 (setf (symbol-function 'nlistp) #'listp)
 (defun copylist (x) (append x nil))
@@ -232,6 +234,7 @@
   (cond ((null y) nil)
 	((eq x (car y)) y)
 	((memq x (cdr y)))))
+(defun xcons (x y) (cons y x))
 
 ; The top-level macro.
 ; Try: (gmap (:list) #'+ (:list '(1 2 3)) (:index 3))
@@ -383,28 +386,47 @@
        (if (not (memq ',name gmap-res-type-list))
 	   (push ',name gmap-res-type-list)))))
 
+(setf (get :gmap-arg-spec-generator ':LIST) ':LIST)
+(setf (get :gmap-arg-spec-generator ':INDEX) ':INDEX)
+(setf (get :gmap-arg-spec-generator ':INDEX-INC) ':INDEX-INC)
+(setf (get :gmap-arg-spec-generator ':ARRAY) ':ARRAY)
+(setf (get :gmap-arg-spec-generator ':STRING) ':STRING)
+(setf (get :gmap-arg-spec-generator ':STREAM) ':STREAM)
+
+(setf (get :gmap-res-spec-generator ':LIST) ':LIST)
+(setf (get :gmap-res-spec-generator ':NCONC) ':NCONC)
+(setf (get :gmap-res-spec-generator ':AND) ':AND)
+(setf (get :gmap-res-spec-generator ':OR) ':OR)
+(setf (get :gmap-res-spec-generator ':SUM) ':SUM)
+(setf (get :gmap-res-spec-generator ':MAX) ':MAX)
+(setf (get :gmap-res-spec-generator ':MIN) ':MIN)
+(setf (get :gmap-res-spec-generator ':ARRAY) ':ARRAY)
+(setf (get :gmap-res-spec-generator ':STRING) ':STRING)
+(setf (get :gmap-res-spec-generator ':VALUES) ':VALUES)
+
 ; look up an arg type.
 (defun gmap>arg-spec-lookup (raw-arg-spec)
   (let ((type (car raw-arg-spec)))
     (if (null type)
 	(cdr raw-arg-spec)
-	(let ((generator (get type ':gmap-arg-spec-generator)))
+	(let ((generator (get :gmap-arg-spec-generator type)))
 	  (if generator
 	      (apply generator (cdr raw-arg-spec))
 	      (ferror nil "Argument spec, ~S, to gmap is of unknown type
-  (Do you have the package right?)")
-		      raw-arg-spec)))))
+  (Do you have the package right?)"
+		      raw-arg-spec))))))
 
 ; look up a result type.
 (defun gmap>res-spec-lookup (raw-res-spec)
   (if (eq (car raw-res-spec) ':values)
       (mapcar #'gmap>res-spec-lookup-1 (cdr raw-res-spec))
     (ncons (gmap>res-spec-lookup-1 raw-res-spec))))
+
 (defun gmap>res-spec-lookup-1 (raw-res-spec)
   (let ((type (car raw-res-spec)))
     (if (null type)
 	(cdr raw-res-spec)
-      (let ((generator (get type ':gmap-res-spec-generator)))
+      (let ((generator (get :gmap-res-spec-generator type)))
 	(if generator
 	    (apply generator (cdr raw-res-spec))
 	  (ferror nil "Result spec, ~S, to gmap is of unknown type
