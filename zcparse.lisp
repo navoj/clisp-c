@@ -9,7 +9,7 @@
 ; ================================================================
 ; The interface to the outside world: a stream whose :read message parses and
 ; returns top-level C expressions.
-
+#+LispMachine
 (defflavor c-parser
 	   ((input-sources nil)
 	    (/#if-nesting-depth 0)
@@ -31,7 +31,15 @@
   (:init-keywords :stream :pathname :start-line)
   (:required-init-keywords :stream :current-directory))
 
-(defstruct (input-source (:type :list) :conc-name)
+(defclass c-parser ()
+  (yacc-state
+   lexer-state
+   c-package
+   source-file-symbol
+   source-file-definition-line
+   whole-file-p))
+
+(defstruct (input-source (:type list) :conc-name)
   stream                                ; input stream
   line-number                           ; the current line number of the stream
   string                                ; current line
@@ -158,7 +166,6 @@
 (defmethod (c-parser :pathname) ()
   (and (not (send self :interactive))
        (send (input-source-stream (car (last input-sources))) :pathname)))
-
 
 ; For porting ZETA-C.
 
