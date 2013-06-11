@@ -17,7 +17,7 @@
 
 (defvar *last-form* nil
   "The translation of the last form entered to the C listener.")
-
+#+LispMachine
 (defflavor c-listener
 	   ((c-listener-package nil))
 	   (tv:process-mixin #-Symbolics tv:full-screen-hack-mixin
@@ -36,14 +36,18 @@
 	      (dw:margin-whitespace :margin :bottom :thickness 3)))
   (:documentation "C Listener window"))
 
+#+LispMachine
 (defmethod (c-listener :package) ()
   c-listener-package)
 
+#+LispMachine
 (defmethod (c-listener :set-package) (pkg)
   (setq c-listener-package (pkg-find-package pkg)))
 
+#+LispMachine
 (compile-flavor-methods c-listener)
 
+#+LispMachine
 (#+3600 tv:add-select-key #-3600 tv:add-system-key #/{ 'c-listener "C Listener")
 
 #+Symbolics
@@ -56,7 +60,7 @@
     "C" 'c-listener
     "A C listener, in which to read and evaluate C forms interactively."
     "Inspect"))
-
+#+LispMachine
 #-Symbolics
 (progn
   (unless (string-equal (caar tv:*system-menu-programs-column*)
@@ -195,24 +199,31 @@
   `(with-input-editing-options ,options
      (with-input-editing (,stream)
        . ,body)))
-
+#+LispMachine
 #-Symbolics
 (defmacro with-input-editing-portably ((stream options) &body body)
   "Give me a break."
   `(with-input-editing (,stream ',options) . ,body))
 
+#+LispMachine
 #-Genera
 (push '(with-input-editing-portably 0 3 1 1) zwei:*lisp-indent-offset-alist*)
 #+Genera
 (puthash 'with-input-editing-portably '(0 3 1 1)
 	 zwei:*lisp-indentation-offset-hash-table*)
 
-
+#+LispMachine
 #-Symbolics 
 (eval-when (compile)
   (format t "~&ZCLSTN>READ changed again -- be sure to test new version here!~@
 	     Type any character to continue: ")
   (tyi))
+
+(eval-when (:compile-toplevel)
+  (format t "~&ZCLSTN>READ changed again -- be sure to test new version here!~@
+Type any character to continue: ")
+  (tyi))
+
 (defun zclstn>read (c-stream break-p)
   "Hairy read function for the C listener -- handles various cases of aborting,
    prompting, etc."
@@ -460,7 +471,7 @@
       (when (< i end) (send stream :tyo (code-char (aref-byte-safe str i)))))
     (send stream :tyo #/")))
 
-#+3600
+#+LispMachine
 (defun aref-byte-safe (str i)
   "Returns 0 if (aref str i) would get an /"array-word not fixnum/" error."
   (nlet ((scale-factor (// (zctype>scale-size ':Q)
@@ -520,6 +531,7 @@
 	 (nlet ((esize (zctype>scale-size (zctype>type-scale etype))))
 	   (values etype (// array-base esize)
 		   (if (null array-size) 1 (// array-size esize)))))))
+
 (defun zclstn>element-type-1 (index type env elt-base array-offset array-size top-level)
   (cond ((zctype>array-p type)
 	 (nlet ((elt-type (zctype>pointer-deref-type type))
@@ -619,6 +631,7 @@
 	(when (and (null offset) (zctype>struct-p (cadr desc)) (not (zerop index)))
 	  (format stream " + ~D"
 		  (// index (zctype>sizeof-in-qs dtype (caddr desc)))))))))
+
 (defun zclstn>print-element-1 (index type env orig-type stream top-level)
   (cond ((zctype>match type orig-type env)
 	 (and ( index 0) (< index (zctype>sizeof type env)) index))
